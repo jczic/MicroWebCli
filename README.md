@@ -48,7 +48,7 @@ def progressCallback(microWebCli, progressSize, totalSize) :
   if totalSize :
     print('Progress: %d bytes of %d downloaded...' % (progressSize, totalSize))
   else :
-    print('Progress: %d bytes downloaded...' % (progressSize, totalSize))
+    print('Progress: %d bytes downloaded...' % progressSize)
 filename    = '/flash/test.pdf'
 contentType = MicroWebCli.FileRequest('http://my-web-site.io/test.pdf', filename, progressCallback)
 print('File of content type "%s" was saved to "%s"' % (contentType, filename))
@@ -164,7 +164,7 @@ def progressCallback(microWebCli, progressSize, totalSize) :
   if totalSize :
     print('Progress: %d bytes of %d downloaded...' % (progressSize, totalSize))
   else :
-    print('Progress: %d bytes downloaded...' % (progressSize, totalSize))
+    print('Progress: %d bytes downloaded...' % progressSize)
 
 filename = '/flash/test.pdf'
 wCli = MicroWebCli('http://my-web-site.io/test.pdf')

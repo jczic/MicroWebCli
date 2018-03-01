@@ -1,4 +1,4 @@
-## A micro HTTP Web client for MicroPython (used on ESP32 and [Pycom](http://www.pycom.io) modules)
+## MicroWebCli is a micro HTTP Web client for MicroPython (used on ESP32 and [Pycom](http://www.pycom.io) modules)
 
 ![HC²](hc2.png "HC²")
 

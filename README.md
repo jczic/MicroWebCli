@@ -1,5 +1,7 @@
 # MicroWebCli
 
+![HC²](hc2.png "HC²")
+
 ### A micro HTTP Web client for MicroPython (used on ESP32 and [Pycom](http://www.pycom.io) modules)
 
 Very easy to integrate and very light with only one file :

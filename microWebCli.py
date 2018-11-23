@@ -3,6 +3,7 @@ The MIT License (MIT)
 Copyright © 2018 Jean-Christophe Bos & HC² (www.hc2.fr)
 """
 
+from   ustruct import pack
 import socket
 import gc
 
@@ -164,10 +165,10 @@ class MicroWebCli :
     # ============================================================================
 
     def __init__(self, url='', method='GET', auth=None, connTimeoutSec=None) :
-        self.ConnTimeoutSec = connTimeoutSec
         self.URL            = url
         self.Method         = method
         self.Auth           = auth
+        self.ConnTimeoutSec = connTimeoutSec
         self._headers       = { }
         self._socket        = None
         self._socketAddr    = None
@@ -210,21 +211,58 @@ class MicroWebCli :
     def OpenRequest( self,
                      data           = None,
                      contentType    = None,
-                     contentLength  = None ) :
+                     contentLength  = None,
+                     socks5Addr     = None ) :
         if self._socket :
             raise Exception('Request is already opened')
         if not self.URL :
             raise Exception('No URL defined')
+        if socks5Addr :
+            if not isinstance(socks5Addr, tuple) or len(socks5Addr) != 2 :
+                raise Exception('"socks5Addr" must be a tuple of (host, port)')
+            host, port = socks5Addr
+            if not isinstance(host, str) or not isinstance(port, int) :
+                raise Exception('"socks5Addr" is incorrect ("%s", %s)' % socks5Addr)
+        else :
+            host = self.Host
+            port = self.Port
         self._response = None
         try :
-            self._socketAddr = socket.getaddrinfo(self.Host, self.Port)[0][-1]
+            self._socketAddr = socket.getaddrinfo(host, port)[0][-1]
             cli              = socket.socket( socket.AF_INET,
                                               socket.SOCK_STREAM,
                                               socket.IPPROTO_TCP )
-            cli.settimeout(self._connTimeoutSec)
+            cli.settimeout(self.ConnTimeoutSec)
             cli.connect(self._socketAddr)
         except :
-            raise Exception('Connection error to %s:%s' % (self.Host, self.Port))
+            raise Exception('Error to connect to %s:%s' % (host, port))
+        if socks5Addr :
+            err = None
+            try :
+                cli.send(b'\x05\x01\x00')
+                b = cli.read(2)
+                if b[0] != 0x05 or b[1] != 0x00 :
+                    err = "%s:%s doesn't supports MicroWebCli SOCKS5 protocol" % socks5Addr
+                else :
+                    h = self.Host.encode()
+                    p = pack('>H', self.Port)
+                    cli.send(b'\x05\x01\x00\x03' + bytes([len(h)]) + h + p)
+                    b = cli.read(4)
+                    if b[1] != 0x00 :
+                        err = "Error to connect to %s:%s through SOCKS5 server" % (self.Host, self.Port)
+                    else :
+                        if b[3] == 0x01 :
+                            l = 4
+                        elif b[3] == 0x03 :
+                            l = b[3]
+                        elif b[3] == 0x04 :
+                            l = 16
+                        cli.read(l + 2)
+            except :
+                err = 'Error during negotiation with SOCKS5 server'
+            if err :
+                cli.close()
+                raise Exception(err)
         if self.Proto == 'https' :
             try :
                 if not 'ssl' in globals() :

@@ -88,6 +88,7 @@ print('File of content type "%s" was saved to "%s"' % (contentType, filename))
 | Gets or sets the dict query parameters | `wCli.QueryParams` |
 | Gets or sets the dict headers | `wCli.Headers` |
 | Gets or sets the authentication class | `wCli.Auth` |
+| Gets or sets a SOCKS5 server (tuple of host and port) | `wCli.Socks5Addr` |
 
 ### Using *microWebCli* response class :
 

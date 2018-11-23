@@ -169,6 +169,7 @@ class MicroWebCli :
         self.Method         = method
         self.Auth           = auth
         self.ConnTimeoutSec = connTimeoutSec
+        self._socks5Addr    = None
         self._headers       = { }
         self._socket        = None
         self._socketAddr    = None
@@ -211,18 +212,17 @@ class MicroWebCli :
     def OpenRequest( self,
                      data           = None,
                      contentType    = None,
-                     contentLength  = None,
-                     socks5Addr     = None ) :
+                     contentLength  = None ) :
         if self._socket :
             raise Exception('Request is already opened')
         if not self.URL :
             raise Exception('No URL defined')
-        if socks5Addr :
-            if not isinstance(socks5Addr, tuple) or len(socks5Addr) != 2 :
-                raise Exception('"socks5Addr" must be a tuple of (host, port)')
-            host, port = socks5Addr
+        if self.Socks5Addr :
+            if not isinstance(self.Socks5Addr, tuple) or len(self.Socks5Addr) != 2 :
+                raise Exception('"Socks5Addr" must be a tuple of (host, port)')
+            host, port = self.Socks5Addr
             if not isinstance(host, str) or not isinstance(port, int) :
-                raise Exception('"socks5Addr" is incorrect ("%s", %s)' % socks5Addr)
+                raise Exception('"Socks5Addr" is incorrect ("%s", %s)' % self.Socks5Addr)
         else :
             host = self.Host
             port = self.Port
@@ -236,13 +236,13 @@ class MicroWebCli :
             cli.connect(self._socketAddr)
         except :
             raise Exception('Error to connect to %s:%s' % (host, port))
-        if socks5Addr :
+        if self.Socks5Addr :
             err = None
             try :
                 cli.send(b'\x05\x01\x00')
                 b = cli.read(2)
                 if b[0] != 0x05 or b[1] != 0x00 :
-                    err = "%s:%s doesn't supports MicroWebCli SOCKS5 protocol" % socks5Addr
+                    err = "%s:%s doesn't supports MicroWebCli SOCKS5 client protocol" % self.Socks5Addr
                 else :
                     h = self.Host.encode()
                     p = pack('>H', self.Port)
@@ -531,6 +531,16 @@ class MicroWebCli :
     @Auth.setter
     def Auth(self, value) :
         self._auth = value
+
+    # ------------------------------------------------------------------------
+
+    @property
+    def Socks5Addr(self) :
+        return self._socks5Addr
+
+    @Socks5Addr.setter
+    def Socks5Addr(self, value) :
+        self._socks5Addr = value
 
     # ============================================================================
     # ===( Class Response  )======================================================

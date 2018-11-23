@@ -123,7 +123,7 @@ wCli.QueryParams['pet'] = 'cat'
 print('GET %s' % wCli.URL)
 wCli.OpenRequest()
 buf  = memoryview(bytearray(1024))
-resp = c.GetResponse()
+resp = wCli.GetResponse()
 if resp.IsSuccess() :
   while not resp.IsClosed() :
     x = resp.ReadContentInto(buf)
@@ -148,7 +148,7 @@ while True :
   if not data :
     break
   wCli.RequestWriteData(data)
-resp = c.GetResponse()
+resp = wCli.GetResponse()
 if resp.IsSuccess() :
   o = resp.ReadContentAsJSON()
   print('PUT success')
@@ -170,7 +170,7 @@ filename = '/flash/test.pdf'
 wCli = MicroWebCli('http://my-web-site.io/test.pdf')
 print('GET file %s' % wCli.URL)
 wCli.OpenRequest()
-resp = c.GetResponse()
+resp = wCli.GetResponse()
 contentType = resp.WriteContentToFile(filename, progressCallback)
 print('File of content type "%s" was saved to "%s"' % (contentType, filename))
 ```

@@ -9,6 +9,7 @@ Simple but effective :
 - Use it to requesting fastly HTTP endpoints
 - Supports URL parts and modifiable query string parameters
 - Supports secured connections *SSL/TLS over HTTP* (https)
+- Supports SOCKS5 server (without authentication)
 - Supports authentications *HTTP Basic* and *Bearer Token*
 - Supports large request and response datas
 - Supports form-urlencoded datas on request

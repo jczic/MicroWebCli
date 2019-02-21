@@ -254,7 +254,7 @@ class MicroWebCli :
                         if b[3] == 0x01 :
                             l = 4
                         elif b[3] == 0x03 :
-                            l = b[3]
+                            l = cli.read(1)[0]
                         elif b[3] == 0x04 :
                             l = 16
                         cli.read(l + 2)

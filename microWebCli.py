@@ -3,7 +3,7 @@ The MIT License (MIT)
 Copyright © 2018 Jean-Christophe Bos & HC² (www.hc2.fr)
 """
 
-from   ustruct import pack
+from   struct import pack
 import socket
 import gc
 
@@ -97,8 +97,8 @@ class MicroWebCli :
 
     # ----------------------------------------------------------------------------
 
-    def GETRequest(url, queryParams=None, auth=None, connTimeoutSec=None) :
-        c = MicroWebCli(url, auth=auth, connTimeoutSec=connTimeoutSec)
+    def GETRequest(url, queryParams=None, auth=None, connTimeoutSec=10, socks5Addr=None) :
+        c = MicroWebCli(url, auth=auth, connTimeoutSec=connTimeoutSec, socks5Addr=socks5Addr)
         if queryParams :
             c.QueryParams = queryParams
         c.OpenRequest()
@@ -107,29 +107,30 @@ class MicroWebCli :
             return r.ReadContent()
         r.Close()
         if r.IsLocationMoved() :
-            return MicroWebCli.GETRequest(r.LocationMovedURL(), queryParams, auth, connTimeoutSec)
+            return MicroWebCli.GETRequest(r.LocationMovedURL(), queryParams, auth, connTimeoutSec, socks5Addr)
         return None
 
     # ----------------------------------------------------------------------------
 
-    def POSTRequest(url, formData={}, auth=None, connTimeoutSec=None) :
-        c = MicroWebCli(url, method='POST', auth=auth, connTimeoutSec=connTimeoutSec)
+    def POSTRequest(url, formData={}, auth=None, connTimeoutSec=10, socks5Addr=None) :
+        c = MicroWebCli(url, method='POST', auth=auth, connTimeoutSec=connTimeoutSec, socks5Addr=socks5Addr)
         c.OpenRequestFormData(formData)
         r = c.GetResponse()
         if r.IsSuccess() :
             return r.ReadContent()
         r.Close()
         if r.IsLocationMoved() :
-            return MicroWebCli.POSTRequest(r.LocationMovedURL(), formData, auth, connTimeoutSec)
+            return MicroWebCli.POSTRequest(r.LocationMovedURL(), formData, auth, connTimeoutSec, socks5Addr)
         return None
 
     # ----------------------------------------------------------------------------
 
-    def JSONRequest(url, o=None, auth=None, connTimeoutSec=None) :
+    def JSONRequest(url, o=None, auth=None, connTimeoutSec=10, socks5Addr=None) :
         c = MicroWebCli( url,
                          method         = ('POST' if o else 'GET'),
                          auth           = auth,
-                         connTimeoutSec = connTimeoutSec )
+                         connTimeoutSec = connTimeoutSec,
+                         socks5Addr     = socks5Addr )
         if o :
             c.OpenRequestJSONData(o)
         else :
@@ -139,13 +140,13 @@ class MicroWebCli :
             return r.ReadContentAsJSON()
         r.Close()
         if r.IsLocationMoved() :
-            return MicroWebCli.JSONRequest(r.LocationMovedURL(), o, auth, connTimeoutSec)
+            return MicroWebCli.JSONRequest(r.LocationMovedURL(), o, auth, connTimeoutSec, socks5Addr)
         return None
 
     # ----------------------------------------------------------------------------
 
-    def FileRequest(url, filepath, progressCallback=None, auth=None, connTimeoutSec=None) :
-        c = MicroWebCli(url, auth=auth, connTimeoutSec=connTimeoutSec)
+    def FileRequest(url, filepath, progressCallback=None, auth=None, connTimeoutSec=10, socks5Addr=None) :
+        c = MicroWebCli(url, auth=auth, connTimeoutSec=connTimeoutSec, socks5Addr=socks5Addr)
         c.OpenRequest()
         r = c.GetResponse()
         if r.IsSuccess() :
@@ -157,19 +158,20 @@ class MicroWebCli :
                                             filepath,
                                             progressCallback,
                                             auth,
-                                            connTimeoutSec )
+                                            connTimeoutSec,
+                                            socks5Addr )
         return None
 
     # ============================================================================
     # ===( Constructor )==========================================================
     # ============================================================================
 
-    def __init__(self, url='', method='GET', auth=None, connTimeoutSec=None) :
+    def __init__( self, url='', method='GET', auth=None, connTimeoutSec=10, socks5Addr=None) :
         self.URL            = url
         self.Method         = method
         self.Auth           = auth
         self.ConnTimeoutSec = connTimeoutSec
-        self._socks5Addr    = None
+        self._socks5Addr    = socks5Addr
         self._headers       = { }
         self._socket        = None
         self._socketAddr    = None
@@ -360,7 +362,7 @@ class MicroWebCli :
 
     @ConnTimeoutSec.setter
     def ConnTimeoutSec(self, value) :
-        self._connTimeoutSec = int(value) if value and int(value) > 0 else 10
+        self._connTimeoutSec = int(value) if value and int(value) > 0 else None
 
     # ------------------------------------------------------------------------
 

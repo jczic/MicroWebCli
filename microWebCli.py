@@ -266,9 +266,9 @@ class MicroWebCli :
                 cli.close()
                 raise Exception(err)
         if self.Proto == 'https' :
+            if not 'ssl' in globals() :
+                import ssl
             try :
-                if not 'ssl' in globals() :
-                    import ssl
                 cli = ssl.wrap_socket(cli)
             except Exception as ex :
                 cli.close()

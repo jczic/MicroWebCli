@@ -183,8 +183,11 @@ class MicroWebCli :
 
     def _write(self, data) :
         try :
-            if self._socket.write(data) == len(data) :
-                return
+            data = memoryview(data)
+            while data :
+                n    = self._socket.write(data)
+                data = data[n:]
+            return True
         except :
             pass
         self.Close()
@@ -243,14 +246,14 @@ class MicroWebCli :
             try :
                 cli.send(b'\x05\x01\x00')
                 b = cli.read(2)
-                if b[0] != 0x05 or b[1] != 0x00 :
+                if b is None or len(b) < 2 or b[0] != 0x05 or b[1] != 0x00 :
                     err = "%s:%s doesn't supports MicroWebCli SOCKS5 client protocol" % self.Socks5Addr
                 else :
                     h = self.Host.encode()
                     p = pack('>H', self.Port)
                     cli.send(b'\x05\x01\x00\x03' + bytes([len(h)]) + h + p)
                     b = cli.read(4)
-                    if b[1] != 0x00 :
+                    if b is None or len(b) < 4 or b[1] != 0x00 :
                         err = "Error to connect to %s:%s through SOCKS5 server" % (self.Host, self.Port)
                     else :
                         if b[3] == 0x01 :
@@ -260,8 +263,8 @@ class MicroWebCli :
                         elif b[3] == 0x04 :
                             l = 16
                         cli.read(l + 2)
-            except :
-                err = 'Error during negotiation with SOCKS5 server'
+            except Exception as ex :
+                err = 'Error during negotiation with SOCKS5 server (%s)' % ex
             if err :
                 cli.close()
                 raise Exception(err)
@@ -269,7 +272,10 @@ class MicroWebCli :
             if not 'ssl' in globals() :
                 import ssl
             try :
-                cli = ssl.wrap_socket(cli)
+                try :
+                    cli = ssl.wrap_socket(cli, timeout=self.ConnTimeoutSec)
+                except TypeError :
+                    cli = ssl.wrap_socket(cli)
             except Exception as ex :
                 cli.close()
                 raise Exception('Error to open a secure SSL/TLS connection (%s)' % ex)

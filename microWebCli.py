@@ -23,7 +23,7 @@ class MicroWebCli :
             if not 'b2a_base64' in globals() :
                 from binascii import b2a_base64
             cred = '%s:%s' % (user, password)
-            self._auth = 'Basic %s' % b2a_base64(cred).decode().strip()
+            self._auth = 'Basic %s' % b2a_base64(cred.encode()).decode().strip()
 
         # ------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ class MicroWebCli :
     # ===( Constructor )==========================================================
     # ============================================================================
 
-    def __init__( self, url='', method='GET', auth=None, connTimeoutSec=10, socks5Addr=None) :
+    def __init__(self, url='', method='GET', auth=None, connTimeoutSec=10, socks5Addr=None) :
         self.URL            = url
         self.Method         = method
         self.Auth           = auth
@@ -189,9 +189,8 @@ class MicroWebCli :
                 data = data[n:]
             return True
         except :
-            pass
-        self.Close()
-        raise Exception('Error to send data on connection')
+            self.Close()
+            raise Exception('Error to send data on connection')
 
     # ------------------------------------------------------------------------
 

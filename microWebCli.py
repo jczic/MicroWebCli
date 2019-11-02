@@ -61,6 +61,7 @@ class MicroWebCli :
 
     # ----------------------------------------------------------------------------
 
+    @staticmethod
     def _quote(s, safe='/') :
         r = ''
         for c in str(s) :
@@ -70,28 +71,35 @@ class MicroWebCli :
                (c in '.-_') or (c in safe) :
                 r += c
             else :
-                r += '%%%02X' % ord(c)
+                for b in c.encode('UTF-8') :
+                    r += '%%%02X' % b
         return r
 
     # ----------------------------------------------------------------------------
 
+    @staticmethod
     def _urlEncode(s) :
         return MicroWebCli._quote(s, ';/?:@&=+$,')
 
     # ----------------------------------------------------------------------------
 
+    @staticmethod
     def _unquote(s) :
         r = str(s).split('%')
-        for i in range(1, len(r)) :
-            s = r[i]
-            try :
-                r[i] = chr(int(s[:2], 16)) + s[2:]
-            except :
-                r[i] = '%' + s
-        return ''.join(r)
+        try :
+            b = r[0].encode()
+            for i in range(1, len(r)) :
+                try :
+                    b += bytes([int(r[i][:2], 16)]) + r[i][2:].encode()
+                except :
+                    b += b'%' + r[i].encode()
+            return b.decode('UTF-8')
+        except :
+            return str(s)
 
     # ----------------------------------------------------------------------------
 
+    @staticmethod
     def _unquote_plus(s) :
         return MicroWebCli._unquote(str(s).replace('+', ' '))
 

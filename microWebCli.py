@@ -190,6 +190,7 @@ class MicroWebCli :
     # ============================================================================
 
     def _write(self, data) :
+        #print(data) # Uncomment this line to print full HTTP request for debugging
         try :
             data = memoryview(data)
             while data :
@@ -203,7 +204,7 @@ class MicroWebCli :
     # ------------------------------------------------------------------------
 
     def _writeFirstLine(self) :
-        path = MicroWebCli._quote(self.Path)
+        path = MicroWebCli._urlEncode(self.Path)
         qs   = self.QueryString
         if qs != '' :
             path = path + '?' + qs
